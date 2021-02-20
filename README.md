@@ -32,6 +32,7 @@ Options:
 
 - [x] Add command to import database from git source
 - [x] Add command to import table from git source
+- [x] Add option to dump tarballs and keep as backup (no git repo) 
 - [ ] Add with drop database option
 - [ ] Add dump empty schema option for migrations (no-data)
 - [ ] Add support for dumping csv
