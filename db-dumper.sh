@@ -1,21 +1,5 @@
 #!/bin/sh
 
-unset HOST
-unset USER
-unset OUTPUT_DIR
-unset COMMIT_MESSAGE
-unset REMOTE
-unset BRANCH
-unset table
-unset db
-unset DUMP
-unset PASSWORD
-unset DATABASE
-unset TABLE
-unset IMPORT_DATABASE
-unset IMPORT_TABLE
-unset HASH
-
 helpmenu () {
 
   echo 'command [options]                                                                    '
@@ -221,7 +205,7 @@ do
 
     # commit remote [OPTIONAL]
     --remote | -R)
-			REMOTE=${$2:-origin}
+			REMOTE=${2:-origin}
 			;;
 
     # commit branch [OPTIONAL]
@@ -375,3 +359,19 @@ if [ ! -z "$REPO" ]; then
   rm -rf ${OUTPUT_DIR}
 
 fi
+
+unset HOST
+unset USER
+unset OUTPUT_DIR
+unset COMMIT_MESSAGE
+unset REMOTE
+unset BRANCH
+unset table
+unset db
+unset DUMP
+unset PASSWORD
+unset DATABASE
+unset TABLE
+unset IMPORT_DATABASE
+unset IMPORT_TABLE
+unset HASH

@@ -17,10 +17,12 @@ RUN git config --global user.name "${USER}"
 
 WORKDIR /workdir
 
-COPY ./dump.sh /workdir/dump.sh
+COPY ./db-dumper.sh /workdir/db-dumper.sh
+COPY ./docker-entrypoint.sh /workdir/docker-entrypoint.sh
 
-RUN  chmod +x /workdir/dump.sh
+RUN  chmod +x /workdir/db-dumper.sh \
+  && chmod +x /workdir/docker-entrypoint.sh
 
-CMD ["/workdir/dump.sh", "$@"]
+CMD ["/workdir/docker-entrypoint.sh"]
 
 
