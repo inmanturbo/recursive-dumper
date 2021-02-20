@@ -23,6 +23,8 @@ helpmenu () {
   echo '                            to enter interactively and avoid passing in clear text   '
   echo '                            through shell)                                           '
   echo '  -v, --verbose         # show output                                                '
+  echo '  -src, --source      # name of database to import from  (requires git)              '
+  echo '  -db, --database      # name of database import destination  (requires git)         '
   echo ''
 
   exit 1
