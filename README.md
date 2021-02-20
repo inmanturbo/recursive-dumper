@@ -1,5 +1,5 @@
 # recursive-dumper
-Recursively dump all database and tables. Optionally push the .sql files to a git repo to be used as schema dumps or versioned test data.
+Recursively dump all databases and tables. Optionally push the .sql files to a git repo to be used as schema dumps or versioned test data.
 
 <pre><font color="#8AE234"><b>➜  </b></font><font color="#34E2E2"><b>database-dumper</b></font> <font color="#729FCF"><b>git:(</b></font><font color="#EF2929"><b>master</b></font><font color="#729FCF"><b>)</b></font> <font color="#4E9A06">./dump.sh</font> --help                       
 command [options]                                                                    
