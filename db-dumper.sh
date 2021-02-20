@@ -347,6 +347,9 @@ elif [ ! -z "$IMPORT_TABLE" ]; then
     -p${PASSWORD} \
     ${DATABASE} < ${OUTPUT_DIR}/${SRC}/mariadb/${TABLE}.sql;
 
+else 
+  echo "No command given, and no arguments. Nothing to do!"
+  helpmenu
 fi
 
 if [ ! -z "$REPO" ]; then
@@ -375,3 +378,5 @@ unset TABLE
 unset IMPORT_DATABASE
 unset IMPORT_TABLE
 unset HASH
+
+exit 0
