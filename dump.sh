@@ -8,17 +8,29 @@ unset REMOTE
 unset BRANCH
 unset table
 unset db
+unset DUMP
 unset PASSWORD
+unset DATABASE
+unset TABLE
+unset IMPORT_DATABASE
+unset IMPORT_TABLE
+unset HASH
 
 helpmenu () {
 
+  echo 'command [options]                                                                    '
+  echo 'Commands:                                                                            '
+  echo '   dump [options]  recusively dump one file for each database and one for each table '
+  echo '   import-db --repo [git repo] --database [database] --source [source]  [options]    '
+  echo '   import-table --repo [repo] --database [dest db] --source [source db] --table [table] [opts]'
   echo 'Options:                                                                             '
   echo '  -h, --help            # print help menu and exit                                   '
+  echo '      --hash [hash]     # checkout a commit hash                                     '
   echo '  -r, --repo            # git repo (requires existing --initialized-- git repo)      '
   echo '  -gz, --tar            # compress indevidual sql files. Does not work with git      '
   echo '  -m, --message [$NOW]  # commit message [OPTIONAL]                                  '
   echo '  -R, --remote [origin] # commit remote [OPTIONAL]                                   '
-  echo '  -b, --branch          # Do not ask any interactive question                        '
+  echo '  -b, --branch          # push to this git branch                                    '
   echo '  -o, --out-dir [$(pwd)/mysqldump_${NOW}] # output directory (where to dump the data)'
   echo '  -h, --host [localhost] # mysql host                                                '
   echo '      --port [3306]      # mysql port                                                '
@@ -128,11 +140,53 @@ dumptablegz() {
 
 }
 
+checkout_hash () {
+  local dir="$1"
+  local hash="$2"
+
+  cd $dir
+  git checkout $hash
+}
+
 NOW=$(date "+%Y-%m-%d_%H-%M-%S")
 
 while [ ! $# -eq 0 ]
 do
 	case "$1" in
+
+    # dump databases
+		dump)
+      DUMP=1
+			;;
+
+    # import databas
+		import-db)
+      IMPORT_DATABASE=1
+			;;
+
+    # import table
+		import-table)
+      IMPORT_TABLE=1
+			;;
+
+    # import src
+		--source | -src)
+      SRC=$2
+			;;
+
+    # import destination
+		--database | -db)
+      DATABASE=$2
+			;;
+
+    # import table
+		--table | -tbl)
+      TABLE=$2
+			;;
+    
+    --hash)
+    HASH=$2
+    ;;
 
     # mysql password
 		--password | -p)
@@ -222,53 +276,94 @@ if [ ! -z "$REPO" ]; then
   git clone ${REPO} ${OUTPUT_DIR}
 fi
 
+if [ ! -z "$HASH" ]; then
+  checkout_hash ${OUTPUT_DIR} ${HASH}
+fi
+
+
+
 #prepare directories
 
 mkdir -p ${OUTPUT_DIR}/mariadb
 mkdir -p ${OUTPUT_DIR}/json
 mkdir -p ${OUTPUT_DIR}/csv
 
-# loop through all databases
-for db in $(mysql -NBA -h ${HOST} -P ${PORT} -u ${USER} -p${PASSWORD} --execute "SHOW DATABASES";) 
-   
-  do 
-    if [ ! -z "$VERBOSE" ]; then
-    echo "working on database ${db}"
-    fi
+if [ ! -z "$DUMP" ]; then
+
+  # loop through all databases
+  for db in $(mysql -NBA -h ${HOST} -P ${PORT} -u ${USER} -p${PASSWORD} --execute "SHOW DATABASES";) 
     
-    # Prepare directories
-    mkdir -p ${OUTPUT_DIR}/${db}/mariadb
-    mkdir -p ${OUTPUT_DIR}/${db}/json 
-    mkdir -p ${OUTPUT_DIR}/${db}/csv 
+    do 
+      if [ ! -z "$VERBOSE" ]; then
+      echo "working on database ${db}"
+      fi
+      
+      # Prepare directories
+      mkdir -p ${OUTPUT_DIR}/${db}/mariadb
+      mkdir -p ${OUTPUT_DIR}/${db}/json 
+      mkdir -p ${OUTPUT_DIR}/${db}/csv 
 
-    if [ ! -z "$TARBALL" ]; then
+      if [ ! -z "$TARBALL" ]; then
 
-      dumpdatabasegz ${HOST} ${USER} ${PASSWORD} ${db} ${OUTPUT_DIR} ${PORT}
-    else
+        dumpdatabasegz ${HOST} ${USER} ${PASSWORD} ${db} ${OUTPUT_DIR} ${PORT}
+      else
 
-      # dump database
-      dumpdatabase ${HOST} ${USER} ${PASSWORD} ${db} ${OUTPUT_DIR} ${PORT}
-    fi   
-    
-      #loop through tables
-      for table in $(mysql -NBA -h ${HOST} -P ${PORT} -u ${USER} -p${PASSWORD} ${db} --execute "SHOW TABLES";) 
+        # dump database
+        dumpdatabase ${HOST} ${USER} ${PASSWORD} ${db} ${OUTPUT_DIR} ${PORT}
+      fi   
+      
+        #loop through tables
+        for table in $(mysql -NBA -h ${HOST} -P ${PORT} -u ${USER} -p${PASSWORD} ${db} --execute "SHOW TABLES";) 
 
-      do 
-        
-        if [ ! -z "$VERBOSE" ]; then
-          echo "working on table ${table} in database ${db}"
-        fi
-        
-        if [ ! -z "$TARBALL" ]; then
+        do 
+          
+          if [ ! -z "$VERBOSE" ]; then
+            echo "working on table ${table} in database ${db}"
+          fi
+          
+          if [ ! -z "$TARBALL" ]; then
 
-          dumptablegz ${HOST} ${USER} ${PASSWORD} ${db} ${OUTPUT_DIR} ${table} ${PORT}
-        else
+            dumptablegz ${HOST} ${USER} ${PASSWORD} ${db} ${OUTPUT_DIR} ${table} ${PORT}
+          else
 
-          # dump table
-          dumptable ${HOST} ${USER} ${PASSWORD} ${db} ${OUTPUT_DIR} ${table} ${PORT}
-        fi    
-      done 
-done
+            # dump table
+            dumptable ${HOST} ${USER} ${PASSWORD} ${db} ${OUTPUT_DIR} ${table} ${PORT}
+          fi    
+        done 
+  done
+elif [ ! -z "$IMPORT_DATABASE" ]; then
+
+  if [ -z "$DATABASE" ] || [ -z "$SRC" ] ; then
+    helpmenu
+  fi
+
+  if [ ! -z "$VERBOSE" ]; then
+      echo " importing ${SRC} into database ${DATABASE}"
+  fi
+
+  mysql -h ${HOST} \
+    -P ${PORT} \
+    -u ${USER} \
+    -p${PASSWORD} \
+    ${DATABASE} < ${OUTPUT_DIR}/mariadb/${SRC}.sql;
+
+elif [ ! -z "$IMPORT_TABLE" ]; then
+
+  if [ -z "$DATABASE" ] || [ -z "$SRC" ] || [ -z "$TABLE" ] ; then
+    helpmenu
+  fi
+
+  if [ ! -z "$VERBOSE" ]; then
+      echo " importing table ${TABLE} from ${SRC} into database ${DATABASE}"
+  fi
+
+  mysql -h ${HOST} \
+    -P ${PORT} \
+    -u ${USER} \
+    -p${PASSWORD} \
+    ${DATABASE} < ${OUTPUT_DIR}/${SRC}/mariadb/${TABLE}.sql;
+
+fi
 
 if [ ! -z "$REPO" ]; then
   
