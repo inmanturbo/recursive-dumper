@@ -30,8 +30,8 @@ Options:
 
 ## To Do
 
-- [x] Add command import database from git source
-- [x] Add command import database from git source
+- [x] Add command to import database from git source
+- [x] Add command to import table from git source
 - [ ] Add with drop database option
 - [ ] Add dump empty schema option for migrations (no-data)
 - [ ] Add support for dumping csv
