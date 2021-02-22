@@ -11,7 +11,7 @@ Options:
   -h, --help            # print help menu and exit                                   
       --hash [hash]     # checkout a commit hash                                     
   -r, --repo            # git repo (requires existing --initialized-- git repo)      
-  -gz, --tar            # compress indevidual sql files. Does not work with git      
+  -gz, --tar            # compress individual sql files. Does not work with git      
   -m, --message [$NOW]  # commit message [OPTIONAL]                                  
   -R, --remote [origin] # commit remote [OPTIONAL]                                   
   -b, --branch          # push to this git branch                                    
